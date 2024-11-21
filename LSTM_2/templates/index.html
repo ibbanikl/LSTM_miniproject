@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Price Prediction</title>
+</head>
+<body>
+    <h1>Stock Price Prediction</h1>
+
+    <!-- Input form -->
+    <form id="stockForm">
+        <input type="text" id="ticker" placeholder="Enter Stock Ticker (e.g., AAPL)" required>
+        <button type="submit">Predict</button>
+    </form>
+
+    <!-- Output section -->
+    <div id="output"></div>
+
+    <!-- Image container -->
+    <div id="stockChart">
+        <img id="stockGraph" src="" alt="Stock Prediction Graph" style="max-width: 100%; display: none;">
+    </div>
+
+    <script>
+        document.getElementById('stockForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const ticker = document.getElementById('ticker').value;
+
+            try {
+                // Make POST request to Flask backend
+                const response = await fetch('http://127.0.0.1:8000/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ ticker })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                // Debugging: Check if the image element is found
+                const imgElement = document.getElementById('stockGraph');
+                if (!imgElement) {
+                    console.error('Image element not found!');
+                    return;
+                }
+
+                // Get the image as a Blob
+                const imageBlob = await response.blob();
+
+                // Create a URL for the Blob and set it as the src for the img element
+                const imageUrl = URL.createObjectURL(imageBlob);
+                imgElement.src = imageUrl;
+                imgElement.style.display = 'block'; // Show image
+
+            } catch (err) {
+                console.error('Fetch error:', err);
+                document.getElementById('output').innerHTML = `<p>Error: ${err.message}</p>`;
+            }
+        });
+    </script>
+</body>
+</html>
